@@ -8,13 +8,13 @@ export async function GET(
   try {
     const { cpf: cpfValue } = await params;
     const { searchParams } = new URL(request.url);
-    const dotKey = searchParams.get('dot_key') || undefined;
-    const dashKey = searchParams.get('dash_key') || undefined;
+    const dotKey = searchParams.get('dot_key') ?? '.';
+    const dashKey = searchParams.get('dash_key') ?? '-';
     const escape = searchParams.get('escape') === 'true';
     const hidden = searchParams.get('hidden') === 'true';
-    const hiddenKey = searchParams.get('hidden_key') || undefined;
-    const hiddenStart = searchParams.get('hidden_start') || undefined;
-    const hiddenEnd = searchParams.get('hidden_end') || undefined;
+    const hiddenKey = searchParams.get('hidden_key') ?? '*';
+    const hiddenStart = searchParams.get('hidden_start') ?? '3';
+    const hiddenEnd = searchParams.get('hidden_end') ?? '10';
     const result = cpfUtils.format(cpfValue, {
       delimiters: {
         dot: dotKey,
@@ -24,8 +24,8 @@ export async function GET(
       hidden,
       hiddenKey,
       hiddenRange: {
-        start: hiddenStart ? parseInt(hiddenStart) : undefined,
-        end: hiddenEnd ? parseInt(hiddenEnd) : undefined,
+        start: parseInt(hiddenStart),
+        end: parseInt(hiddenEnd),
       },
       onFail() {
         throw new TypeError();
