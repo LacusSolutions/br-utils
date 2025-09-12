@@ -1,0 +1,27 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { cnpj as cnpjUtils } from 'br-utils';
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { cnpj: string } }
+) {
+  try {
+    const { cnpj: cnpjValue } = params;
+    const result = cnpjUtils.isValid(cnpjValue);
+
+    return NextResponse.json(
+      { result },
+      {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+  } catch {
+    return NextResponse.json(
+      { error: 'Unable to validate CNPJ.' },
+      { status: 500 },
+    );
+  }
+}
