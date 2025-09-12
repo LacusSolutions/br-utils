@@ -13,12 +13,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(
       { result },
-      {
-        status: 200,
-        headers: {
-          'Content-Type': 'text/plain',
-        },
-      },
+      { status: 200 },
     );
   } catch (error) {
     if (error instanceof TypeError) {

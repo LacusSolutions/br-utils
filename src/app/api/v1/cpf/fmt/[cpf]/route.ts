@@ -34,12 +34,8 @@ export async function GET(
 
     return NextResponse.json(
       { result },
-      {
-      status: 200,
-      headers: {
-        'Content-Type': 'text/plain',
-      },
-    });
+      { status: 200 },
+    );
   } catch (error) {
     if (error instanceof TypeError) {
       return NextResponse.json(
