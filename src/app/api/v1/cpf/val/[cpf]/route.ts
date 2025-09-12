@@ -3,10 +3,10 @@ import { cpf as cpfUtils } from 'br-utils';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { cpf: string } }
+  { params }: { params: Promise<{ cpf: string }> }
 ) {
   try {
-    const { cpf: cpfValue } = params;
+    const { cpf: cpfValue } = await params;
     const result = cpfUtils.isValid(cpfValue);
 
     return NextResponse.json(

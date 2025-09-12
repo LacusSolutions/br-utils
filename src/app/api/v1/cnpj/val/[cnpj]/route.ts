@@ -3,10 +3,10 @@ import { cnpj as cnpjUtils } from 'br-utils';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { cnpj: string } }
+  { params }: { params: Promise<{ cnpj: string }> }
 ) {
   try {
-    const { cnpj: cnpjValue } = params;
+    const { cnpj: cnpjValue } = await params;
     const result = cnpjUtils.isValid(cnpjValue);
 
     return NextResponse.json(

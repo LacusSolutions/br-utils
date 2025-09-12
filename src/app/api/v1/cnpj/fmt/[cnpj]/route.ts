@@ -3,10 +3,10 @@ import { cnpj as cnpjUtils } from 'br-utils';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { cnpj: string } }
+  { params }: { params: Promise<{ cnpj: string }> }
 ) {
   try {
-    const { cnpj: cnpjValue } = params;
+    const { cnpj: cnpjValue } = await params;
     const { searchParams } = new URL(request.url);
     const dotKey = searchParams.get('dot_key') || undefined;
     const slashKey = searchParams.get('slash_key') || undefined;
