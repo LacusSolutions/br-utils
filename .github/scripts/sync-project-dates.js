@@ -337,12 +337,59 @@ function markdownLink(label, url) {
   return `[${label}](${url})`
 }
 
-function formatChangeMarkdown(item, writes) {
+function repoName(content) {
+  if (content && content.repository && content.repository.nameWithOwner) {
+    return content.repository.nameWithOwner
+  }
+  return 'Unknown repository'
+}
+
+function repoUrl(content) {
+  const name = content && content.repository && content.repository.nameWithOwner
+  return name ? `https://github.com/${name}` : null
+}
+
+function toChangeRecord(item, writes) {
   const content = item.content || {}
-  const title = content.title ? ` — ${content.title}` : ''
-  const heading = `${markdownLink(itemLabel(item), itemUrl(content))}${title}`
-  const ops = writes.map((op) => `  - ${describeOp(op)}`).join('\n')
-  return `- ${heading}\n${ops}`
+  return {
+    repo: repoName(content),
+    repoUrl: repoUrl(content),
+    number: content.number,
+    url: itemUrl(content),
+    title: content.title || '',
+    ops: writes,
+  }
+}
+
+function formatChangesByRepo(changes) {
+  if (changes.length === 0) {
+    return ['_None._']
+  }
+
+  const byRepo = new Map()
+  for (const change of changes) {
+    const key = change.repo
+    if (!byRepo.has(key)) {
+      byRepo.set(key, { repo: change.repo, repoUrl: change.repoUrl, items: [] })
+    }
+    byRepo.get(key).items.push(change)
+  }
+
+  const lines = []
+  const repos = [...byRepo.values()].sort((a, b) => a.repo.localeCompare(b.repo))
+  for (const group of repos) {
+    lines.push(`- ${markdownLink(group.repo, group.repoUrl)}`)
+    group.items.sort((a, b) => (a.number || 0) - (b.number || 0))
+    for (const item of group.items) {
+      const identifier = item.number != null ? `#${item.number}` : item.title || 'item'
+      const title = item.number != null && item.title ? ` ${item.title}` : ''
+      lines.push(`  - ${markdownLink(identifier, item.url)}${title}`)
+      for (const op of item.ops) {
+        lines.push(`    - ${describeOp(op)}`)
+      }
+    }
+  }
+  return lines
 }
 
 function buildJobSummary({ project, dryRun, summary, changes, skipped, errors }) {
@@ -361,11 +408,7 @@ function buildJobSummary({ project, dryRun, summary, changes, skipped, errors })
 
   lines.push(`### ${updatedHeading} (${changes.length})`)
   lines.push('')
-  if (changes.length === 0) {
-    lines.push('_None._')
-  } else {
-    lines.push(...changes)
-  }
+  lines.push(...formatChangesByRepo(changes))
   lines.push('')
 
   if (skipped.length > 0) {
@@ -519,7 +562,7 @@ async function main() {
       for (const op of writes) {
         console.log(`  - ${describeOp(op)}`)
       }
-      changes.push(formatChangeMarkdown(item, writes))
+      changes.push(toChangeRecord(item, writes))
       summary.updated += 1
     } catch (error) {
       summary.errors += 1
@@ -565,6 +608,7 @@ module.exports = {
   planWrites,
   itemUrl,
   describeOp,
-  formatChangeMarkdown,
+  toChangeRecord,
+  formatChangesByRepo,
   buildJobSummary,
 }

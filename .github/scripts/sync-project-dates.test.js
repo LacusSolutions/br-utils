@@ -11,7 +11,8 @@ const {
   planWrites,
   itemUrl,
   describeOp,
-  formatChangeMarkdown,
+  toChangeRecord,
+  formatChangesByRepo,
   buildJobSummary,
 } = require('./sync-project-dates')
 
@@ -238,8 +239,8 @@ describe('change report', () => {
     assert.equal(describeOp({ op: 'clear', fieldName: 'End date' }), 'clear End date')
   })
 
-  it('formats a markdown list item with a clickable issue link', () => {
-    const markdown = formatChangeMarkdown(
+  it('groups changes by repo and links only the issue identifier', () => {
+    const phpIssue = toChangeRecord(
       {
         content: {
           __typename: 'Issue',
@@ -254,13 +255,57 @@ describe('change report', () => {
         { op: 'clear', fieldName: 'End date' },
       ],
     )
+    const phpEarlier = toChangeRecord(
+      {
+        content: {
+          __typename: 'Issue',
+          title: 'Fix lint',
+          url: 'https://github.com/LacusSolutions/br-utils-php/issues/12',
+          number: 12,
+          repository: { nameWithOwner: 'LacusSolutions/br-utils-php' },
+        },
+      },
+      [{ op: 'set', fieldName: 'End date', date: '2026-03-10' }],
+    )
+    const rubyPr = toChangeRecord(
+      {
+        content: {
+          __typename: 'PullRequest',
+          title: 'Release gem',
+          url: 'https://github.com/LacusSolutions/br-utils-ruby/pull/7',
+          number: 7,
+          repository: { nameWithOwner: 'LacusSolutions/br-utils-ruby' },
+        },
+      },
+      [{ op: 'set', fieldName: 'Start date', date: '2026-02-01' }],
+    )
+
+    const markdown = formatChangesByRepo([phpIssue, rubyPr, phpEarlier]).join('\n')
 
     assert.match(
       markdown,
-      /\[LacusSolutions\/br-utils-php#48\]\(https:\/\/github.com\/LacusSolutions\/br-utils-php\/issues\/48\) — Add coverage/,
+      /- \[LacusSolutions\/br-utils-php\]\(https:\/\/github.com\/LacusSolutions\/br-utils-php\)/,
     )
-    assert.match(markdown, /set Start date to 2026-03-09/)
-    assert.match(markdown, /clear End date/)
+    assert.match(
+      markdown,
+      /  - \[#12\]\(https:\/\/github.com\/LacusSolutions\/br-utils-php\/issues\/12\) Fix lint/,
+    )
+    assert.match(
+      markdown,
+      /  - \[#48\]\(https:\/\/github.com\/LacusSolutions\/br-utils-php\/issues\/48\) Add coverage/,
+    )
+    assert.match(
+      markdown,
+      /- \[LacusSolutions\/br-utils-ruby\]\(https:\/\/github.com\/LacusSolutions\/br-utils-ruby\)/,
+    )
+    assert.match(
+      markdown,
+      /  - \[#7\]\(https:\/\/github.com\/LacusSolutions\/br-utils-ruby\/pull\/7\) Release gem/,
+    )
+    assert.doesNotMatch(markdown, /\[Add coverage\]/)
+    assert.doesNotMatch(markdown, /\[Release gem\]/)
+    assert.ok(markdown.indexOf('br-utils-php') < markdown.indexOf('br-utils-ruby'))
+    assert.ok(markdown.indexOf('#12') < markdown.indexOf('#48'))
   })
 
   it('builds a dry-run job summary with update links', () => {
@@ -272,7 +317,18 @@ describe('change report', () => {
       dryRun: true,
       summary: { items: 3, updated: 1, unchanged: 1, skipped: 1, errors: 0 },
       changes: [
-        '- [LacusSolutions/br-utils-php#48](https://github.com/LacusSolutions/br-utils-php/issues/48) — Add coverage\n  - set Start date to 2026-03-09',
+        toChangeRecord(
+          {
+            content: {
+              __typename: 'Issue',
+              title: 'Add coverage',
+              url: 'https://github.com/LacusSolutions/br-utils-php/issues/48',
+              number: 48,
+              repository: { nameWithOwner: 'LacusSolutions/br-utils-php' },
+            },
+          },
+          [{ op: 'set', fieldName: 'Start date', date: '2026-03-09' }],
+        ),
       ],
       skipped: ['Draft title'],
       errors: [],
@@ -280,7 +336,7 @@ describe('change report', () => {
 
     assert.match(report, /Dry-run \(no writes\)/)
     assert.match(report, /Would update \(1\)/)
-    assert.match(report, /br-utils-php\/issues\/48/)
+    assert.match(report, /\[#48\]\(https:\/\/github.com\/LacusSolutions\/br-utils-php\/issues\/48\) Add coverage/)
     assert.match(report, /Skipped drafts \(1\)/)
   })
 })
