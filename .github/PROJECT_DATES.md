@@ -40,7 +40,7 @@ If those names are missing, the job fails instead of guessing.
 1. Merge this workflow to `main` (scheduled workflows only run from the default branch).
 2. Add `PROJECTS_TOKEN`.
 3. Actions → **Sync Project Dates** → Run workflow with **dry_run** enabled.
-4. Read the job summary (`items=… skipped=… updated=… unchanged=… errors=…`).
+4. Open the **sync** job. The log lists each issue/PR URL that would change. The job **Summary** tab has the same list as clickable markdown links.
 5. Re-run with **dry_run** disabled to write.
 
 The scheduled run is **23:50 UTC every day and writes** (`DRY_RUN=false`). Manual runs default to dry-run.

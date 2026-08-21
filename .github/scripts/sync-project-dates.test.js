@@ -9,6 +9,10 @@ const {
   isResetStatus,
   replayDesiredDates,
   planWrites,
+  itemUrl,
+  describeOp,
+  formatChangeMarkdown,
+  buildJobSummary,
 } = require('./sync-project-dates')
 
 function event(createdAt, previousStatus, status) {
@@ -207,5 +211,76 @@ describe('planWrites', () => {
       }),
       [],
     )
+  })
+})
+
+describe('change report', () => {
+  it('builds an issue URL from content.url or repo/number', () => {
+    assert.equal(
+      itemUrl({ url: 'https://github.com/LacusSolutions/br-utils-ruby/issues/12' }),
+      'https://github.com/LacusSolutions/br-utils-ruby/issues/12',
+    )
+    assert.equal(
+      itemUrl({
+        __typename: 'PullRequest',
+        repository: { nameWithOwner: 'LacusSolutions/br-utils-js' },
+        number: 7,
+      }),
+      'https://github.com/LacusSolutions/br-utils-js/pull/7',
+    )
+  })
+
+  it('describes set and clear operations', () => {
+    assert.equal(
+      describeOp({ op: 'set', fieldName: 'Start date', date: '2026-03-09' }),
+      'set Start date to 2026-03-09',
+    )
+    assert.equal(describeOp({ op: 'clear', fieldName: 'End date' }), 'clear End date')
+  })
+
+  it('formats a markdown list item with a clickable issue link', () => {
+    const markdown = formatChangeMarkdown(
+      {
+        content: {
+          __typename: 'Issue',
+          title: 'Add coverage',
+          url: 'https://github.com/LacusSolutions/br-utils-php/issues/48',
+          number: 48,
+          repository: { nameWithOwner: 'LacusSolutions/br-utils-php' },
+        },
+      },
+      [
+        { op: 'set', fieldName: 'Start date', date: '2026-03-09' },
+        { op: 'clear', fieldName: 'End date' },
+      ],
+    )
+
+    assert.match(
+      markdown,
+      /\[LacusSolutions\/br-utils-php#48\]\(https:\/\/github.com\/LacusSolutions\/br-utils-php\/issues\/48\) — Add coverage/,
+    )
+    assert.match(markdown, /set Start date to 2026-03-09/)
+    assert.match(markdown, /clear End date/)
+  })
+
+  it('builds a dry-run job summary with update links', () => {
+    const report = buildJobSummary({
+      project: {
+        title: 'Lacus',
+        url: 'https://github.com/orgs/LacusSolutions/projects/1',
+      },
+      dryRun: true,
+      summary: { items: 3, updated: 1, unchanged: 1, skipped: 1, errors: 0 },
+      changes: [
+        '- [LacusSolutions/br-utils-php#48](https://github.com/LacusSolutions/br-utils-php/issues/48) — Add coverage\n  - set Start date to 2026-03-09',
+      ],
+      skipped: ['Draft title'],
+      errors: [],
+    })
+
+    assert.match(report, /Dry-run \(no writes\)/)
+    assert.match(report, /Would update \(1\)/)
+    assert.match(report, /br-utils-php\/issues\/48/)
+    assert.match(report, /Skipped drafts \(1\)/)
   })
 })

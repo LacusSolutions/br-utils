@@ -15,6 +15,7 @@ query($owner: String!, $number: Int!, $cursor: String) {
     projectV2(number: $number) {
       id
       title
+      url
       fields(first: 50) {
         nodes {
           ... on ProjectV2FieldCommon { id name dataType }
@@ -40,6 +41,7 @@ query($owner: String!, $number: Int!, $cursor: String) {
               id
               number
               title
+              url
               repository { nameWithOwner }
               timelineItems(first: 100, itemTypes: [PROJECT_V2_ITEM_STATUS_CHANGED_EVENT]) {
                 pageInfo { hasNextPage endCursor }
@@ -57,6 +59,7 @@ query($owner: String!, $number: Int!, $cursor: String) {
               id
               number
               title
+              url
               repository { nameWithOwner }
               timelineItems(first: 100, itemTypes: [PROJECT_V2_ITEM_STATUS_CHANGED_EVENT]) {
                 pageInfo { hasNextPage endCursor }
@@ -309,6 +312,91 @@ function itemLabel(item) {
   return content.title || item.id
 }
 
+function itemUrl(content) {
+  if (content && content.url) {
+    return content.url
+  }
+  if (content && content.repository && content.number != null) {
+    const kind = content.__typename === 'PullRequest' ? 'pull' : 'issues'
+    return `https://github.com/${content.repository.nameWithOwner}/${kind}/${content.number}`
+  }
+  return null
+}
+
+function describeOp(op) {
+  if (op.op === 'set') {
+    return `set ${op.fieldName} to ${op.date}`
+  }
+  return `clear ${op.fieldName}`
+}
+
+function markdownLink(label, url) {
+  if (!url) {
+    return label
+  }
+  return `[${label}](${url})`
+}
+
+function formatChangeMarkdown(item, writes) {
+  const content = item.content || {}
+  const title = content.title ? ` — ${content.title}` : ''
+  const heading = `${markdownLink(itemLabel(item), itemUrl(content))}${title}`
+  const ops = writes.map((op) => `  - ${describeOp(op)}`).join('\n')
+  return `- ${heading}\n${ops}`
+}
+
+function buildJobSummary({ project, dryRun, summary, changes, skipped, errors }) {
+  const lines = []
+  const mode = dryRun ? 'Dry-run (no writes)' : 'Write'
+  const updatedHeading = dryRun ? 'Would update' : 'Updated'
+
+  lines.push(`## Sync Project Dates`)
+  lines.push('')
+  lines.push(`- Mode: **${mode}**`)
+  lines.push(`- Project: ${markdownLink(project.title, project.url)}`)
+  lines.push(
+    `- Totals: ${summary.items} items, ${summary.updated} ${updatedHeading.toLowerCase()}, ${summary.unchanged} unchanged, ${summary.skipped} skipped, ${summary.errors} errors`,
+  )
+  lines.push('')
+
+  lines.push(`### ${updatedHeading} (${changes.length})`)
+  lines.push('')
+  if (changes.length === 0) {
+    lines.push('_None._')
+  } else {
+    lines.push(...changes)
+  }
+  lines.push('')
+
+  if (skipped.length > 0) {
+    lines.push(`### Skipped drafts (${skipped.length})`)
+    lines.push('')
+    for (const label of skipped) {
+      lines.push(`- ${label}`)
+    }
+    lines.push('')
+  }
+
+  if (errors.length > 0) {
+    lines.push(`### Errors (${errors.length})`)
+    lines.push('')
+    for (const entry of errors) {
+      lines.push(`- ${entry.label}: \`${entry.error}\``)
+    }
+    lines.push('')
+  }
+
+  return `${lines.join('\n')}\n`
+}
+
+function writeJobSummary(markdown) {
+  const summaryPath = process.env.GITHUB_STEP_SUMMARY
+  if (!summaryPath) {
+    return
+  }
+  require('fs').appendFileSync(summaryPath, markdown)
+}
+
 function isIssueOrPullRequest(content) {
   return content && (content.__typename === 'Issue' || content.__typename === 'PullRequest')
 }
@@ -334,13 +422,7 @@ async function loadProject(token, owner, number) {
   return { project, items }
 }
 
-async function applyOp(token, projectId, itemId, op, dryRun) {
-  const suffix = op.op === 'set' ? `${op.fieldName}=${op.date}` : `clear ${op.fieldName}`
-  if (dryRun) {
-    console.log(`dry-run ${itemId} ${suffix}`)
-    return
-  }
-
+async function applyOp(token, projectId, itemId, op) {
   if (op.op === 'set') {
     await graphql(token, SET_DATE_MUTATION, {
       projectId,
@@ -381,7 +463,9 @@ async function main() {
   const startField = requireField(fields, FIELD_START, 'DATE')
   const endField = requireField(fields, FIELD_END, 'DATE')
 
-  console.log(`project=${project.title} id=${project.id} items=${items.length} dryRun=${dryRun}`)
+  console.log(
+    `${dryRun ? 'Dry-run' : 'Write'} for ${project.title} (${project.url || `${owner}/projects/${number}`}) — ${items.length} items`,
+  )
 
   const summary = {
     items: items.length,
@@ -391,13 +475,16 @@ async function main() {
     errors: 0,
   }
   const errors = []
+  const skipped = []
+  const changes = []
 
   for (const item of items) {
     const label = itemLabel(item)
+    const url = itemUrl(item.content)
     try {
       const content = item.content
       if (!isIssueOrPullRequest(content)) {
-        console.log(`skip draft ${label}`)
+        skipped.push(label)
         summary.skipped += 1
         continue
       }
@@ -421,18 +508,37 @@ async function main() {
         continue
       }
 
-      for (const op of writes) {
-        await applyOp(token, project.id, item.id, op, dryRun)
+      if (!dryRun) {
+        for (const op of writes) {
+          await applyOp(token, project.id, item.id, op)
+        }
       }
-      console.log(`updated ${label} ${JSON.stringify(writes)}`)
+
+      const verb = dryRun ? 'Would update' : 'Updated'
+      console.log(`${verb} ${url || label}`)
+      for (const op of writes) {
+        console.log(`  - ${describeOp(op)}`)
+      }
+      changes.push(formatChangeMarkdown(item, writes))
       summary.updated += 1
     } catch (error) {
       summary.errors += 1
       errors.push({ label, error: error.message || String(error) })
-      console.error(`error ${label}: ${error.message || error}`)
+      console.error(`Error ${url || label}: ${error.message || error}`)
     }
   }
 
+  const jobSummary = buildJobSummary({
+    project,
+    dryRun,
+    summary,
+    changes,
+    skipped,
+    errors,
+  })
+  writeJobSummary(jobSummary)
+  console.log('')
+  console.log(jobSummary)
   console.log(
     `items=${summary.items} skipped=${summary.skipped} updated=${summary.updated} unchanged=${summary.unchanged} errors=${summary.errors}`,
   )
@@ -457,4 +563,8 @@ module.exports = {
   isResetStatus,
   replayDesiredDates,
   planWrites,
+  itemUrl,
+  describeOp,
+  formatChangeMarkdown,
+  buildJobSummary,
 }
