@@ -1,68 +1,92 @@
-import type {ReactNode} from 'react';
-import clsx from 'clsx';
+import type {ComponentType, ReactNode} from 'react';
 import Heading from '@theme/Heading';
+import Translate from '@docusaurus/Translate';
+import {
+  AlphanumericIcon,
+  ConfigIcon,
+  FormatIcon,
+  GenerateIcon,
+  UnifiedIcon,
+  ValidateIcon,
+} from './icons';
+
 import styles from './styles.module.css';
 
-type FeatureItem = {
+const FEATURES: {
+  Icon: ComponentType;
+  titleId: string;
   title: string;
-  Svg: React.ComponentType<React.ComponentProps<'svg'>>;
-  description: ReactNode;
-};
-
-const FeatureList: FeatureItem[] = [
+  bodyId: string;
+  body: string;
+}[] = [
   {
-    title: 'Easy to Use',
-    Svg: require('@site/public/img/undraw_docusaurus_mountain.svg').default,
-    description: (
-      <>
-        Docusaurus was designed from the ground up to be easily installed and
-        used to get your website up and running quickly.
-      </>
-    ),
+    Icon: FormatIcon,
+    titleId: 'homepage.features.format.title',
+    title: 'Formatar',
+    bodyId: 'homepage.features.format.body',
+    body: 'Aplique ou remova a máscara de CPF e CNPJ.',
   },
   {
-    title: 'Focus on What Matters',
-    Svg: require('@site/public/img/undraw_docusaurus_tree.svg').default,
-    description: (
-      <>
-        Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
-        ahead and move your docs into the <code>docs</code> directory.
-      </>
-    ),
+    Icon: GenerateIcon,
+    titleId: 'homepage.features.generate.title',
+    title: 'Gerar',
+    bodyId: 'homepage.features.generate.body',
+    body: 'Gere identificadores válidos de CPF e CNPJ.',
   },
   {
-    title: 'Powered by React',
-    Svg: require('@site/public/img/undraw_docusaurus_react.svg').default,
-    description: (
-      <>
-        Extend or customize your website layout by reusing React. Docusaurus can
-        be extended while reusing the same header and footer.
-      </>
-    ),
+    Icon: ValidateIcon,
+    titleId: 'homepage.features.validate.title',
+    title: 'Validar',
+    bodyId: 'homepage.features.validate.body',
+    body: 'Verifique dígitos verificadores e formato.',
+  },
+  {
+    Icon: AlphanumericIcon,
+    titleId: 'homepage.features.alnum.title',
+    title: 'CNPJ alfanumérico',
+    bodyId: 'homepage.features.alnum.body',
+    body: 'Suporte ao novo formato alfanumérico de CNPJ (2026).',
+  },
+  {
+    Icon: UnifiedIcon,
+    titleId: 'homepage.features.unified.title',
+    title: 'API unificada',
+    bodyId: 'homepage.features.unified.body',
+    body: 'Um pacote de fachada que reúne utilitários de CPF e CNPJ.',
+  },
+  {
+    Icon: ConfigIcon,
+    titleId: 'homepage.features.config.title',
+    title: 'Padrões configuráveis',
+    bodyId: 'homepage.features.config.body',
+    body: 'Defina opções padrão na instância e sobrescreva por chamada.',
   },
 ];
 
-function Feature({title, Svg, description}: FeatureItem) {
-  return (
-    <div className={clsx('col col--4')}>
-      <div className="text--center">
-        <Svg className={styles.featureSvg} role="img" />
-      </div>
-      <div className="text--center padding-horiz--md">
-        <Heading as="h3">{title}</Heading>
-        <p>{description}</p>
-      </div>
-    </div>
-  );
-}
-
 export default function HomepageFeatures(): ReactNode {
   return (
-    <section className={styles.features}>
+    <section className={styles.section}>
       <div className="container">
+        <Heading as="h2" className={styles.heading}>
+          <Translate id="homepage.features.heading">
+            O que a BR Utils faz
+          </Translate>
+        </Heading>
         <div className="row">
-          {FeatureList.map((props, idx) => (
-            <Feature key={idx} {...props} />
+          {FEATURES.map((feature) => (
+            <div key={feature.titleId} className="col col--4 margin-bottom--lg">
+              <div className={styles.card}>
+                <span className={styles.mark}>
+                  <feature.Icon />
+                </span>
+                <Heading as="h3">
+                  <Translate id={feature.titleId}>{feature.title}</Translate>
+                </Heading>
+                <p>
+                  <Translate id={feature.bodyId}>{feature.body}</Translate>
+                </p>
+              </div>
+            </div>
           ))}
         </div>
       </div>

@@ -1,0 +1,27 @@
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: stretch;
+  gap: 1rem;
+  margin: 1rem 0 2rem;
+}
+
+.grid > * {
+  flex: 0 0 calc((100% - 3rem) / 4);
+  max-width: calc((100% - 3rem) / 4);
+}
+
+@media screen and (max-width: 996px) {
+  .grid > * {
+    flex-basis: calc((100% - 1rem) / 2);
+    max-width: calc((100% - 1rem) / 2);
+  }
+}
+
+@media screen and (max-width: 520px) {
+  .grid > * {
+    flex-basis: 100%;
+    max-width: 100%;
+  }
+}

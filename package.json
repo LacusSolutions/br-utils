@@ -6,7 +6,11 @@
     "url": "https://github.com/juliolmuller"
   },
   "scripts": {
+    "sync": "node scripts/sync-readmes.mjs",
+    "predev": "node scripts/sync-readmes.mjs",
+    "prebuild": "node scripts/sync-readmes.mjs",
     "dev": "docusaurus start",
+    "dev:en": "docusaurus start --locale en",
     "build": "docusaurus build",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
@@ -21,6 +25,7 @@
   },
   "dependencies": {
     "@docusaurus/core": "3.10.2",
+    "@docusaurus/faster": "3.10.2",
     "@docusaurus/preset-classic": "3.10.2",
     "@mdx-js/react": "^3.1.1",
     "clsx": "^2.1.1",

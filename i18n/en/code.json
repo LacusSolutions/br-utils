@@ -1,0 +1,118 @@
+{
+  "homepage.hero.tagline": {
+    "message": "Format, generate, and validate Brazilian CPF and CNPJ — in the language you already use.",
+    "description": "Homepage hero tagline"
+  },
+  "homepage.hero.ctaDocs": {
+    "message": "Get started",
+    "description": "Homepage primary CTA"
+  },
+  "homepage.hero.ctaGithub": {
+    "message": "View on GitHub",
+    "description": "Homepage GitHub CTA"
+  },
+  "homepage.meta.title": {
+    "message": "Utilities for Brazilian data",
+    "description": "Homepage document title"
+  },
+  "homepage.meta.description": {
+    "message": "CPF and CNPJ: format, generate, and validate — JavaScript, PHP, Python, and Ruby.",
+    "description": "Homepage meta description"
+  },
+  "homepage.features.heading": {
+    "message": "What BR Utils does",
+    "description": "Homepage features section heading"
+  },
+  "homepage.features.format.title": {
+    "message": "Format",
+    "description": "Feature title"
+  },
+  "homepage.features.format.body": {
+    "message": "Apply or strip CPF and CNPJ masks.",
+    "description": "Feature body"
+  },
+  "homepage.features.generate.title": {
+    "message": "Generate",
+    "description": "Feature title"
+  },
+  "homepage.features.generate.body": {
+    "message": "Generate valid CPF and CNPJ identifiers.",
+    "description": "Feature body"
+  },
+  "homepage.features.validate.title": {
+    "message": "Validate",
+    "description": "Feature title"
+  },
+  "homepage.features.validate.body": {
+    "message": "Check check-digits and format.",
+    "description": "Feature body"
+  },
+  "homepage.features.alnum.title": {
+    "message": "Alphanumeric CNPJ",
+    "description": "Feature title"
+  },
+  "homepage.features.alnum.body": {
+    "message": "Support for the new alphanumeric CNPJ format (2026).",
+    "description": "Feature body"
+  },
+  "homepage.features.unified.title": {
+    "message": "Unified API",
+    "description": "Feature title"
+  },
+  "homepage.features.unified.body": {
+    "message": "One façade package wrapping CPF and CNPJ utilities.",
+    "description": "Feature body"
+  },
+  "homepage.features.config.title": {
+    "message": "Configurable defaults",
+    "description": "Feature title"
+  },
+  "homepage.features.config.body": {
+    "message": "Set instance defaults and override them per call.",
+    "description": "Feature body"
+  },
+  "homepage.code.heading": {
+    "message": "The same flow, in every language",
+    "description": "Homepage code showcase heading"
+  },
+  "homepage.languages.lead": {
+    "message": "Four languages ready for production. Java, Go, and Rust are on the way.",
+    "description": "Homepage languages intro"
+  },
+  "navbar.language": {
+    "message": "Language",
+    "description": "Programming-language navbar dropdown label"
+  },
+  "languages.comingSoon": {
+    "message": "Coming soon",
+    "description": "Badge for languages still in development"
+  },
+  "languages.available": {
+    "message": "Available now",
+    "description": "Heading for supported languages"
+  },
+  "languages.comingSoonHeading": {
+    "message": "In development",
+    "description": "Heading for upcoming languages"
+  },
+  "docsPicker.title": {
+    "message": "Choose a language",
+    "description": "Docs language picker title"
+  },
+  "docsPicker.subtitle": {
+    "message": "BR Utils docs are per language. Pick the implementation you use.",
+    "description": "Docs language picker subtitle"
+  },
+  "locale.devEnglishTitle": {
+    "message": "English is not on this dev server",
+    "description": "Title when /en is opened on the Portuguese start server"
+  },
+  "locale.devEnglishBody": {
+    "message": "The development server (`bun run dev`) only serves Portuguese. Use `bun run dev:en` (opens at /en/) or `bun run build && bun run serve` to try the locale switcher.",
+    "description": "Body when /en is opened on the Portuguese start server"
+  },
+  "locale.backToDefault": {
+    "message": "Back to Portuguese",
+    "description": "Link back to the default locale"
+  }
+}

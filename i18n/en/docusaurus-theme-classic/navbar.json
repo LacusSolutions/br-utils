@@ -1,0 +1,18 @@
+{
+  "title": {
+    "message": "BR Utils",
+    "description": "The title in the navbar"
+  },
+  "logo.alt": {
+    "message": "Lacus Solutions Logo",
+    "description": "The alt text of navbar logo"
+  },
+  "item.label.Documentação": {
+    "message": "Docs",
+    "description": "Navbar item with label Documentação"
+  },
+  "item.label.GitHub": {
+    "message": "GitHub",
+    "description": "Navbar item with label GitHub"
+  }
+}

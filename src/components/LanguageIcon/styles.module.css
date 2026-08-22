@@ -1,0 +1,10 @@
+.group {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+[data-theme='dark'] .invertInDark {
+  filter: invert(1) brightness(1.15);
+}
