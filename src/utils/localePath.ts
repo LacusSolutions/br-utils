@@ -11,12 +11,21 @@ export function stripLocalePrefix(pathname: string): string {
   return stripped.startsWith('/') ? stripped : `/${stripped}`;
 }
 
+/** 404 is not a real route (`/404.html`). Never emit `/404` as a locale target. */
+export function pathForLocaleSwitch(pathname: string): string {
+  const rest = stripLocalePrefix(pathname);
+  if (/^\/404(\.html)?$/.test(rest)) {
+    return '/';
+  }
+  return rest;
+}
+
 export function pathForLocale(
   pathname: string,
   targetLocale: string,
   defaultLocale: string,
 ): string {
-  const rest = stripLocalePrefix(pathname);
+  const rest = pathForLocaleSwitch(pathname);
   if (targetLocale === defaultLocale) {
     return rest;
   }
