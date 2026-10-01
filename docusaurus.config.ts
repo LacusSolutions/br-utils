@@ -95,6 +95,12 @@ const config: Config = {
       lang: 'ruby',
       repo: 'LacusSolutions/br-utils-ruby',
     }),
+    [
+      'vercel-analytics',
+      {
+        mode: 'auto',
+      },
+    ],
   ],
 
   themeConfig: {
